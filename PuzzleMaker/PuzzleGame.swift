@@ -71,7 +71,7 @@ class PuzzleGame: ObservableObject {
                     continue
                 }
                 
-                // 画像の一部を切り出し
+                // 画像の一部を切り出し（そのまま四角形）
                 guard let cgImage = image.cgImage,
                       let croppedCGImage = cgImage.cropping(to: rect) else {
                     continue
@@ -255,8 +255,8 @@ class PuzzleGame: ObservableObject {
     private func getGridPositionForPiece(_ piece: PuzzlePiece, imageSize: CGSize) -> (row: Int, col: Int)? {
         let pieceWidth = imageSize.width / CGFloat(puzzleSize)
         let pieceHeight = imageSize.height / CGFloat(puzzleSize)
-        // より厳密な閾値：ピースサイズの半分（ピースがグリッドの中心に近い場合のみ）
-        let threshold = max(pieceWidth, pieceHeight) * 0.5
+        // より厳密な閾値：ピースサイズの20%（より正確に枠に収まっている必要がある）
+        let threshold = max(pieceWidth, pieceHeight) * 0.2
         
         // すべてのグリッド位置をチェック
         for row in 0..<puzzleSize {
@@ -272,7 +272,7 @@ class PuzzleGame: ObservableObject {
                 
                 if distance < threshold {
                     // このグリッド位置に他のピースが既にいるかチェック
-                    let conflictThreshold = max(pieceWidth, pieceHeight) * 0.4
+                    let conflictThreshold = max(pieceWidth, pieceHeight) * 0.2
                     let hasConflict = pieces.contains { otherPiece in
                         if otherPiece.id == piece.id { return false } // 自分自身は除外
                         let otherDistance = sqrt(
@@ -310,8 +310,11 @@ class PuzzleGame: ObservableObject {
         
         // ヘッダーと完成メッセージのスペースを考慮
         let headerHeight: CGFloat = 80
-        let completionMessageHeight: CGFloat = isLandscape ? 120 : 100
-        let availableHeight = screenHeight - headerHeight - (isCompleted ? completionMessageHeight : 0)
+        // 横向き時は完成前はメッセージのスペースを確保しない（完成後はcachedScaleで維持）
+        // 縦向き時は元の値を使用
+        let completionMessageHeight: CGFloat = isLandscape ? 0 : (UIDevice.current.userInterfaceIdiom == .pad ? 100 : 60)
+        // 横向き時は完成前はメッセージのスペースを確保しない、縦向き時は確保する
+        let availableHeight = screenHeight - headerHeight - completionMessageHeight
         
         // パズル完成エリアの計算
         let puzzleAreaHeight = isLandscape ? availableHeight * 0.98 : availableHeight * 0.4
@@ -333,13 +336,16 @@ class PuzzleGame: ObservableObject {
             let rightMax = screenWidth - 20.0
             
             let areaTop = headerHeight + 10
-            let areaBottom = screenHeight - (isCompleted ? completionMessageHeight + 10 : 20)
+            // 横向き時は完成前はメッセージのスペースを確保しない（完成後はcachedScaleで維持）
+            let actualMessageHeight: CGFloat = isLandscape ? (UIDevice.current.userInterfaceIdiom == .pad ? 60 : 50) : completionMessageHeight
+            let areaBottom = screenHeight - (isCompleted ? actualMessageHeight + 10 : 20)
             
             (screenMinX, screenMaxX, screenMinY, screenMaxY, leftMinX, leftMaxX, rightMinX, rightMaxX) = 
                 (leftMin, leftMax, areaTop, areaBottom, leftMin, leftMax, rightMin, rightMax)
         } else {
             // 縦向き時：下のスペースに配置
             let areaTop = headerHeight + puzzleAreaHeight + 20
+            // 縦向き時は常に完成メッセージのスペースを確保
             let areaBottom = screenHeight - (isCompleted ? completionMessageHeight + 20 : 50)
             
             (screenMinX, screenMaxX, screenMinY, screenMaxY, leftMinX, leftMaxX, rightMinX, rightMaxX) = 
