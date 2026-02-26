@@ -1,0 +1,26 @@
+/* 
+  Localizable.strings (Japanese)
+  IPuzzleYou
+  
+  Created by santamaru on 2026/01/17.
+*/
+
+// スタート画面
+"subtitle" = "あなただけのパズルを作成しましょう";
+"select_image_description" = "画像を選択してパズルを作成しましょう";
+"select_image" = "画像を選択";
+"change_image" = "画像を変更";
+"select_difficulty" = "パズルの難易度を選択";
+"pieces" = "ピース";
+"start" = "開始";
+
+// ゲーム画面
+"reference_image" = "参照画像";
+"reset" = "リセット";
+"home" = "ホーム";
+
+// 完成メッセージ
+"completed" = "完成！";
+"time" = "タイム:";
+"new_puzzle" = "新しいパズル";
+

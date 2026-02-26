@@ -182,14 +182,27 @@ struct ContentView: View {
     
     private var startView: some View {
         ScrollView {
-            VStack(spacing: 30) {
-                Text("パズルメーカー")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                
-                Text("画像を選択してパズルを作成しましょう")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+            VStack(spacing: 32) {
+                // タイトルセクション
+                VStack(spacing: 8) {
+                    Text("IPuzzleYou")
+                        .font(.system(size: 42, weight: .bold, design: .rounded))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.blue, .purple],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                    
+                    Text(String(localized: "subtitle"))
+                        .font(.title3)
+                        .fontWeight(.medium)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+                .padding(.top, 20)
                 
                 // 選択した画像のプレビュー
                 if let image = game.selectedImage {
@@ -197,8 +210,8 @@ struct ContentView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(maxHeight: 300)
-                        .cornerRadius(12)
-                        .shadow(radius: 5)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
                         .padding(.horizontal)
                 }
                 
@@ -207,12 +220,25 @@ struct ContentView: View {
                     selection: $selectedPhoto,
                     matching: .images
                 ) {
-                    Label(game.selectedImage == nil ? "画像を選択" : "画像を変更", systemImage: "photo.on.rectangle")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(12)
+                    HStack(spacing: 10) {
+                        Image(systemName: "photo.on.rectangle")
+                            .font(.title3)
+                        Text(game.selectedImage == nil ? String(localized: "select_image") : String(localized: "change_image"))
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                    }
+                    .foregroundColor(.white)
+                    .padding(.vertical, 16)
+                    .padding(.horizontal, 24)
+                    .background(
+                        LinearGradient(
+                            colors: [.blue, .blue.opacity(0.8)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 5)
                 }
                 .onChange(of: selectedPhoto) { oldValue, newItem in
                     Task {
@@ -228,27 +254,54 @@ struct ContentView: View {
                 
                 // パズルサイズ選択
                 if game.selectedImage != nil {
-                    VStack(spacing: 15) {
-                        Text("パズルの難易度を選択")
-                            .font(.headline)
+                    VStack(spacing: 20) {
+                        Text(String(localized: "select_difficulty"))
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
                         
                         ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 15) {
+                            HStack(spacing: 16) {
                                 ForEach(puzzleSizes, id: \.self) { size in
                                     Button(action: {
-                                        game.selectedPuzzleSize = size
+                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                            game.selectedPuzzleSize = size
+                                        }
                                     }) {
-                                        VStack {
+                                        VStack(spacing: 6) {
                                             Text("\(size)×\(size)")
-                                                .font(.title2)
-                                                .fontWeight(.bold)
-                                            Text("\(size * size)ピース")
+                                                .font(.system(size: 24, weight: .bold, design: .rounded))
+                                            Text("\(size * size) \(String(localized: "pieces"))")
                                                 .font(.caption)
+                                                .fontWeight(.medium)
                                         }
                                         .foregroundColor(.white)
-                                        .frame(width: 80, height: 80)
-                                        .background(game.selectedPuzzleSize == size ? Color.green : Color.blue)
-                                        .cornerRadius(12)
+                                        .frame(width: 90, height: 90)
+                                        .background(
+                                            Group {
+                                                if game.selectedPuzzleSize == size {
+                                                    LinearGradient(
+                                                        colors: [.green, .green.opacity(0.8)],
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    )
+                                                } else {
+                                                    LinearGradient(
+                                                        colors: [.blue.opacity(0.7), .blue.opacity(0.5)],
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    )
+                                                }
+                                            }
+                                        )
+                                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                                        .shadow(
+                                            color: game.selectedPuzzleSize == size ? .green.opacity(0.4) : .blue.opacity(0.2),
+                                            radius: game.selectedPuzzleSize == size ? 12 : 6,
+                                            x: 0,
+                                            y: game.selectedPuzzleSize == size ? 6 : 3
+                                        )
+                                        .scaleEffect(game.selectedPuzzleSize == size ? 1.05 : 1.0)
                                     }
                                 }
                             }
@@ -265,20 +318,37 @@ struct ContentView: View {
                                     game.createPuzzle(from: image, size: size)
                                 }
                             }) {
-                                Text("開始")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(Color.green)
-                                    .cornerRadius(12)
+                                HStack(spacing: 8) {
+                                    Image(systemName: "play.fill")
+                                        .font(.title3)
+                                    Text(String(localized: "start"))
+                                        .font(.headline)
+                                        .fontWeight(.semibold)
+                                }
+                                .foregroundColor(.white)
+                                .padding(.vertical, 16)
+                                .frame(maxWidth: .infinity)
+                                .background(
+                                    LinearGradient(
+                                        colors: [.green, .green.opacity(0.8)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .shadow(color: .green.opacity(0.4), radius: 12, x: 0, y: 6)
                             }
                             .padding(.horizontal)
+                            .transition(.scale.combined(with: .opacity))
                         }
                     }
-                    .padding()
-                    .background(Color(.secondarySystemBackground))
-                    .cornerRadius(16)
+                    .padding(24)
+                    .background(
+                        RoundedRectangle(cornerRadius: 24)
+                            .fill(Color(.systemBackground))
+                            .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
+                    )
+                    .padding(.horizontal)
                 }
             }
             .padding()
@@ -497,57 +567,104 @@ struct ContentView: View {
     }
     
     private var headerView: some View {
-        HStack {
+        HStack(spacing: 16) {
             // タイマー
-            HStack {
-                Image(systemName: "clock")
+            HStack(spacing: 8) {
+                Image(systemName: "clock.fill")
+                    .font(.title3)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.blue, .purple],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                 Text(game.formatTime(game.elapsedTime))
-                    .font(.headline)
+                    .font(.system(.headline, design: .rounded))
+                    .fontWeight(.semibold)
                     .monospacedDigit()
+                    .foregroundColor(.primary)
             }
-            .foregroundColor(.primary)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.systemBackground))
+                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
+            )
             
             Spacer()
             
             // 参照画像表示ボタン
             Button(action: {
-                showingReferenceImage.toggle()
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    showingReferenceImage.toggle()
+                }
             }) {
-                Image(systemName: "photo")
-                    .font(.headline)
+                Image(systemName: "photo.fill")
+                    .font(.title3)
                     .foregroundColor(.white)
-                    .padding(10)
-                    .background(Color.purple)
+                    .frame(width: 44, height: 44)
+                    .background(
+                        LinearGradient(
+                            colors: [.purple, .purple.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .clipShape(Circle())
+                    .shadow(color: .purple.opacity(0.3), radius: 8, x: 0, y: 4)
             }
             
             // リセットボタン
             Button(action: {
-                game.resetGame()
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    game.resetGame()
+                }
             }) {
                 Image(systemName: "arrow.counterclockwise")
-                    .font(.headline)
+                    .font(.title3)
                     .foregroundColor(.white)
-                    .padding(10)
-                    .background(Color.orange)
+                    .frame(width: 44, height: 44)
+                    .background(
+                        LinearGradient(
+                            colors: [.orange, .orange.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .clipShape(Circle())
+                    .shadow(color: .orange.opacity(0.3), radius: 8, x: 0, y: 4)
             }
             
             // ホームボタン
             Button(action: {
-                game.isGameStarted = false
-                game.stopTimer()
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    game.isGameStarted = false
+                    game.stopTimer()
+                }
             }) {
-                Image(systemName: "house")
-                    .font(.headline)
+                Image(systemName: "house.fill")
+                    .font(.title3)
                     .foregroundColor(.white)
-                    .padding(10)
-                    .background(Color.blue)
+                    .frame(width: 44, height: 44)
+                    .background(
+                        LinearGradient(
+                            colors: [.blue, .blue.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .clipShape(Circle())
+                    .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
             }
         }
-        .padding()
-        .background(Color(.secondarySystemBackground))
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(
+            .ultraThinMaterial,
+            in: Rectangle()
+        )
         .sheet(isPresented: $showingReferenceImage) {
             if let image = game.selectedImage {
                 referenceImageView(image: image)
@@ -626,41 +743,65 @@ struct ContentView: View {
                 VStack(spacing: spacing) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: iconSize * 1.5))
-                        .foregroundColor(.green)
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.green, .green.opacity(0.8)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .shadow(color: .green.opacity(0.3), radius: 10, x: 0, y: 5)
                     
-                    VStack(alignment: .center, spacing: 4) {
-                        Text("完成！")
+                    VStack(alignment: .center, spacing: 6) {
+                        Text(String(localized: "completed"))
                             .font(titleFont)
                             .fontWeight(.bold)
+                            .foregroundColor(.primary)
                         
-                        Text("タイム:")
+                        Text(String(localized: "time"))
                             .font(timeFont)
                             .foregroundColor(.secondary)
                         
                         Text(game.formatTime(game.elapsedTime))
                             .font(timeFont)
-                            .foregroundColor(.secondary)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
                     }
                     
                     Spacer()
                     
                     Button(action: {
-                        game.isGameStarted = false
-                        game.isCompleted = false
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            game.isGameStarted = false
+                            game.isCompleted = false
+                        }
                     }) {
-                        Text("新しいパズル")
-                            .font(buttonFont)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, buttonHPadding)
-                            .padding(.vertical, buttonVPadding)
-                            .background(Color.blue)
-                            .cornerRadius(8)
+                        HStack(spacing: 6) {
+                            Image(systemName: "plus.circle.fill")
+                            Text(String(localized: "new_puzzle"))
+                        }
+                        .font(buttonFont)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, buttonHPadding)
+                        .padding(.vertical, buttonVPadding)
+                        .background(
+                            LinearGradient(
+                                colors: [.blue, .blue.opacity(0.8)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
                     }
                 }
                 .padding(padding)
-                .background(Color(.systemBackground))
-                .cornerRadius(12)
-                .shadow(radius: 4)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color(.systemBackground))
+                        .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+                )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .transition(.move(edge: .trailing).combined(with: .opacity))
                 .animation(.spring(response: 0.5, dampingFraction: 0.8), value: game.isCompleted)
@@ -670,14 +811,22 @@ struct ContentView: View {
                     HStack(spacing: hSpacing) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: iconSize))
-                            .foregroundColor(.green)
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [.green, .green.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .shadow(color: .green.opacity(0.3), radius: 8, x: 0, y: 4)
                         
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("完成！")
+                            Text(String(localized: "completed"))
                                 .font(titleFont)
                                 .fontWeight(.bold)
+                                .foregroundColor(.primary)
                             
-                            Text("タイム: \(game.formatTime(game.elapsedTime))")
+                            Text("\(String(localized: "time")) \(game.formatTime(game.elapsedTime))")
                                 .font(timeFont)
                                 .foregroundColor(.secondary)
                         }
@@ -685,22 +834,37 @@ struct ContentView: View {
                         Spacer()
                         
                         Button(action: {
-                            game.isGameStarted = false
-                            game.isCompleted = false
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                game.isGameStarted = false
+                                game.isCompleted = false
+                            }
                         }) {
-                            Text("新しいパズル")
-                                .font(buttonFont)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, buttonHPadding)
-                                .padding(.vertical, buttonVPadding)
-                                .background(Color.blue)
-                                .cornerRadius(12)
+                            HStack(spacing: 6) {
+                                Image(systemName: "plus.circle.fill")
+                                Text(String(localized: "new_puzzle"))
+                            }
+                            .font(buttonFont)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, buttonHPadding)
+                            .padding(.vertical, buttonVPadding)
+                            .background(
+                                LinearGradient(
+                                    colors: [.blue, .blue.opacity(0.8)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
                         }
                     }
                     .padding(padding)
-                    .background(Color(.systemBackground))
-                    .cornerRadius(12)
-                    .shadow(radius: 4)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color(.systemBackground))
+                            .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+                    )
                 }
                 .padding(.horizontal)
                 .padding(.bottom)
